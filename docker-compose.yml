@@ -1,0 +1,39 @@
+# A complete local stack: the app, Postgres with the real migrations applied,
+# and nothing that only exists in production. Useful for trying the Postgres
+# path before pointing anything at Supabase.
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_PASSWORD: sunroom
+      POSTGRES_DB: sunroom
+    volumes:
+      - ./supabase/local/0000_shim.sql:/docker-entrypoint-initdb.d/00-shim.sql:ro
+      - ./supabase/migrations:/docker-entrypoint-initdb.d/migrations:ro
+      - ./supabase/local/docker-init.sh:/docker-entrypoint-initdb.d/01-migrate.sh:ro
+      - db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d sunroom"]
+      interval: 5s
+      retries: 10
+
+  app:
+    build: .
+    depends_on:
+      db: { condition: service_healthy }
+    environment:
+      SUNROOM_ENV: development
+      SUNROOM_STORE: postgres
+      DATABASE_URL: postgresql://postgres:sunroom@db:5432/sunroom
+      PRISM_PROVIDER: ${PRISM_PROVIDER:-mock}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      SUNROOM_SECRET_KEY: ${SUNROOM_SECRET_KEY:-local-dev-secret-key-at-least-32-chars-long}
+      SUNROOM_WORKER_SECRET: ${SUNROOM_WORKER_SECRET:-local-dev-worker-secret}
+    ports:
+      - "8000:8000"
+    volumes:
+      - data:/data
+
+volumes:
+  db:
+  data:

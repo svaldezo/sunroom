@@ -1,0 +1,17 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+.venv/
+venv/
+.env
+.env.local
+*.db
+*.db-wal
+*.db-shm
+eval_report.json
+eval_report.md
+node_modules/
+.vercel
+.DS_Store

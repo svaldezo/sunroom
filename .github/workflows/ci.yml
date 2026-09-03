@@ -1,0 +1,137 @@
+name: CI
+
+on:
+  push: { branches: [main] }
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    # The Postgres half of the suite runs against a real database, applying the
+    # real migrations. Testing the SQLite path alone would leave the production
+    # store completely unexercised.
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+
+    env:
+      SUNROOM_TEST_DSN: postgresql://postgres:postgres@127.0.0.1:5432/sunroom_test
+      PGPASSWORD: postgres
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[all,dev]"
+          pip install pytest
+
+      - name: Apply migrations
+        run: ./supabase/local/apply.sh "$SUNROOM_TEST_DSN"
+
+      # RESET_AND_APPLY.sql is what actually gets pasted into a dashboard, so a
+      # stale copy is a broken deploy nobody finds until deploy day.
+      - name: The pasteable reset script is current
+        run: |
+          python tools/build_reset_sql.py
+          git diff --exit-code -- supabase/RESET_AND_APPLY.sql \
+            || { echo "::error::RESET_AND_APPLY.sql is stale — run tools/build_reset_sql.py"; exit 1; }
+
+      - name: The pasteable reset script produces the same database
+        env:
+          RESET_DSN: postgresql://postgres:postgres@127.0.0.1:5432/sunroom_reset
+        run: |
+          psql "postgresql://postgres:postgres@127.0.0.1:5432/postgres" \
+            -v ON_ERROR_STOP=1 -q -c "create database sunroom_reset"
+          # Shim first, then junk, so the reset has something real to remove.
+          psql "$RESET_DSN" -v ON_ERROR_STOP=1 -q -f supabase/local/0000_shim.sql
+          psql "$RESET_DSN" -v ON_ERROR_STOP=1 -q -c "create table public.leftovers (id int); create table public.understandings (id text primary key);"
+          psql "$RESET_DSN" -v ON_ERROR_STOP=1 -q -f supabase/RESET_AND_APPLY.sql > /dev/null
+          SUNROOM_TEST_DSN="$RESET_DSN" pytest -q tests/test_rls.py
+          psql "$RESET_DSN" -t -c "select count(*) from pg_tables where schemaname='public' and tablename='leftovers'" \
+            | grep -q 0 || { echo "::error::the reset left old tables behind"; exit 1; }
+
+      - name: Lint
+        run: ruff check prism/ api/ tools/ tests/
+
+      - name: Tests
+        run: pytest -q --maxfail=3
+
+      - name: Diagram parse check
+        run: |
+          pip install playwright && playwright install --with-deps chromium
+          python tools/check_diagrams.py
+
+      - name: Evaluation harness
+        run: python tools/evaluate.py
+
+      - name: Fail on evaluation findings
+        run: |
+          python - <<'PY'
+          import json, sys
+          issues = json.load(open("eval_report.json")).get("issues", [])
+          if issues:
+              for i in issues:
+                  print("::error::", i)
+              sys.exit(1)
+          print("no evaluation findings")
+          PY
+
+  smoke:
+    # Boot the app the way it actually gets deployed and exercise it over HTTP.
+    # A green unit suite and a container that will not start are compatible
+    # states, and only one of them is discovered by users.
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12", cache: pip }
+      - run: pip install -e ".[all,dev]" && pip install pytest
+      - name: Smoke test
+        run: python tools/smoke.py
+
+  build:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - name: Build image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: false
+          load: true
+          tags: sunroom:ci
+      - name: The container must answer
+        run: |
+          docker run -d --name sunroom -p 8000:8000 \
+            -e SUNROOM_ENV=development -e PRISM_PROVIDER=mock \
+            -e SUNROOM_SECRET_KEY=ci-secret-key-long-enough-for-hkdf-0123456789 \
+            -e SUNROOM_WORKER_SECRET=ci-worker sunroom:ci
+          for i in $(seq 1 30); do
+            if curl -sf http://127.0.0.1:8000/api/health >/dev/null; then
+              echo "healthy"; docker rm -f sunroom; exit 0
+            fi
+            sleep 2
+          done
+          echo "container never became healthy"; docker logs sunroom; exit 1

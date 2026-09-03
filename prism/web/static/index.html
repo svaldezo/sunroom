@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sunroom</title>
+<link rel="icon" href="/static/favicon.svg" type="image/svg+xml"
+      media="(prefers-color-scheme: dark)">
+<link rel="icon" href="/static/favicon-light.svg" type="image/svg+xml"
+      media="(prefers-color-scheme: light)">
+<link rel="icon" href="/static/favicon-32.png" sizes="32x32">
+<link rel="apple-touch-icon" href="/static/apple-touch-icon.png">
+<meta name="theme-color" content="#F4F2EA" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#141815" media="(prefers-color-scheme: dark)">
+<link rel="stylesheet" href="/static/app.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.58.0/dist/umd/supabase.min.js"></script>
+<script src="/static/mermaid.min.js"></script>
+</head>
+<body>
+
+<!-- ── icon sprite: 24-grid, 1.7 stroke, rounded ─────────────── -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <g id="i-library" fill="none" stroke="currentColor" stroke-width="1.7"
+     stroke-linecap="round" stroke-linejoin="round">
+    <rect x="3" y="4" width="7" height="16" rx="1.5"/>
+    <rect x="14" y="4" width="7" height="9" rx="1.5"/>
+    <path d="M14 17h7"/><path d="M14 20.5h7"/></g>
+  <g id="i-read" fill="none" stroke="currentColor" stroke-width="1.7"
+     stroke-linecap="round" stroke-linejoin="round">
+    <path d="M4 5.5A2 2 0 0 1 6 4h5v16H6a2 2 0 0 0-2 1.5z"/>
+    <path d="M20 5.5A2 2 0 0 0 18 4h-5v16h5a2 2 0 0 1 2 1.5z"/></g>
+  <g id="i-make" fill="none" stroke="currentColor" stroke-width="1.7"
+     stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="8" cy="8" r="4"/><rect x="13" y="13" width="8" height="8" rx="1.6"/>
+    <path d="M3 21h7"/></g>
+  <g id="i-ask" fill="none" stroke="currentColor" stroke-width="1.7"
+     stroke-linecap="round" stroke-linejoin="round">
+    <path d="M20 12a7.5 7.5 0 0 1-10.9 6.7L4 20l1.3-4.1A7.5 7.5 0 1 1 20 12z"/>
+    <path d="M9.8 9.6a2.3 2.3 0 0 1 4.4.8c0 1.5-2.2 1.9-2.2 3"/>
+    <path d="M12 16.2h.01"/></g>
+  <g id="i-practice" fill="none" stroke="currentColor" stroke-width="1.7"
+     stroke-linecap="round" stroke-linejoin="round">
+    <rect x="3" y="6" width="13" height="13" rx="2"/>
+    <path d="M7.5 3h11A2.5 2.5 0 0 1 21 5.5v11"/></g>
+  <g id="i-checks" fill="none" stroke="currentColor" stroke-width="1.7"
+     stroke-linecap="round" stroke-linejoin="round">
+    <path d="M12 3l7.5 3v5.5c0 4.6-3.1 8.4-7.5 9.5-4.4-1.1-7.5-4.9-7.5-9.5V6z"/>
+    <path d="M9 12l2.2 2.2L15.5 10"/></g>
+  <g id="i-search" fill="none" stroke="currentColor" stroke-width="1.9"
+     stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/>
+    <path d="M15.5 15.5L21 21"/></g>
+  <g id="i-plus" fill="none" stroke="currentColor" stroke-width="2"
+     stroke-linecap="round"><path d="M12 5v14M5 12h14"/></g>
+  <g id="i-trash" fill="none" stroke="currentColor" stroke-width="1.8"
+     stroke-linecap="round" stroke-linejoin="round">
+    <path d="M4.5 7h15"/><path d="M9.5 7V5.2A1.2 1.2 0 0 1 10.7 4h2.6a1.2 1.2 0 0 1 1.2 1.2V7"/>
+    <path d="M6.5 7l.8 12A1.5 1.5 0 0 0 8.8 20.4h6.4A1.5 1.5 0 0 0 16.7 19l.8-12"/>
+    <path d="M10.4 10.5v6M13.6 10.5v6"/></g>
+  <g id="i-menu" fill="none" stroke="currentColor" stroke-width="1.9"
+     stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></g>
+  <g id="i-upload" fill="none" stroke="currentColor" stroke-width="1.8"
+     stroke-linecap="round" stroke-linejoin="round">
+    <path d="M12 15.5V4.5"/><path d="M7.5 9L12 4.5 16.5 9"/>
+    <path d="M4.5 15v3A1.5 1.5 0 0 0 6 19.5h12a1.5 1.5 0 0 0 1.5-1.5v-3"/></g>
+  <g id="i-ext" fill="none" stroke="currentColor" stroke-width="1.8"
+     stroke-linecap="round" stroke-linejoin="round">
+    <path d="M14 4h6v6"/><path d="M20 4l-8.5 8.5"/>
+    <path d="M18 14v5a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 4 19V8a1.5 1.5 0 0 1 1.5-1.5H10"/></g>
+  <g id="i-tick" fill="none" stroke="currentColor" stroke-width="2.2"
+     stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"/></g>
+  <g id="i-doc" fill="none" stroke="currentColor" stroke-width="1.7"
+     stroke-linecap="round" stroke-linejoin="round">
+    <path d="M13 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V9z"/>
+    <path d="M13 3v6h6"/></g>
+  <g id="i-audio" fill="none" stroke="currentColor" stroke-width="1.7"
+     stroke-linecap="round"><path d="M5 10v4M9 6.5v11M13 8.5v7M17 5.5v13M21 10v4"/></g>
+  <g id="i-web" fill="none" stroke="currentColor" stroke-width="1.7"
+     stroke-linecap="round"><circle cx="12" cy="12" r="8.5"/>
+    <path d="M3.5 12h17"/><path d="M12 3.5a13 13 0 0 1 0 17 13 13 0 0 1 0-17z"/></g>
+  <g id="i-sun" fill="none" stroke="currentColor" stroke-width="1.8"
+     stroke-linecap="round"><circle cx="12" cy="12" r="4.2"/>
+    <path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M18.4 5.6L17 7M7 17l-1.4 1.4"/></g>
+</defs></svg>
+
+<!-- ── rail ──────────────────────────────────────────────────── -->
+<nav id="rail">
+  <div class="brand">
+    <svg class="mark" viewBox="0 0 32 32" aria-hidden="true">
+      <defs><clipPath id="mk"><rect width="32" height="32" rx="7.4"/></clipPath></defs>
+      <rect width="32" height="32" rx="7.4" fill="#1B211E"/>
+      <g clip-path="url(#mk)"><circle cx="16" cy="30" r="12.5" fill="#E0A32B"/></g>
+    </svg>
+    <svg class="wm" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 8325 998"
+         role="img" aria-label="Sunroom">
+      <title>Sunroom</title>
+      <g transform="translate(-69.1, 972.0)" fill="currentColor">
+        <path d="M482.0 -852Q418.0 -852 383.5 -822.0Q349.0 -792 349.0 -746Q349.0 -712 369.0 -687.5Q389.0 -663 424.0 -646.0Q459.0 -629 504.0 -618Q637.0 -589 726.5 -545.0Q816.0 -501 862.0 -437.5Q908.0 -374 908.0 -287Q908.0 -151 812.5 -65.0Q717.0 21 523.0 21Q471.0 21 429.5 11.0Q388.0 1 357.5 -9.0Q327.0 -19 307.0 -19Q288.0 -19 274.5 -8.5Q261.0 2 248.0 12.5Q235.0 23 217.0 23Q194.0 23 174.5 7.0Q155.0 -9 141.0 -44L82.0 -182Q62.0 -233 73.0 -267.0Q84.0 -301 114.0 -312Q143.0 -321 177.0 -309.0Q211.0 -297 234.0 -267Q270.0 -216 313.0 -178.0Q356.0 -140 406.0 -119.0Q456.0 -98 513.0 -98Q589.0 -98 624.5 -132.5Q660.0 -167 660.0 -220Q660.0 -258 637.5 -284.0Q615.0 -310 572.5 -327.5Q530.0 -345 473.0 -357Q352.0 -377 269.5 -418.5Q187.0 -460 144.0 -525.5Q101.0 -591 101.0 -680Q101.0 -766 147.5 -831.5Q194.0 -897 276.5 -934.5Q359.0 -972 469.0 -972Q535.0 -972 578.5 -962.0Q622.0 -952 648.0 -942.0Q674.0 -932 687.0 -932Q706.0 -932 720.5 -942.0Q735.0 -952 748.5 -962.0Q762.0 -972 779.0 -972Q798.0 -972 815.0 -958.5Q832.0 -945 840.0 -912L885.0 -763Q897.0 -722 891.5 -685.0Q886.0 -648 851.0 -639Q826.0 -632 799.0 -648.0Q772.0 -664 747.0 -699Q701.0 -772 632.5 -812.0Q564.0 -852 482.0 -852Z"/>
+        <path d="M1732.0 -136V-198L1720.0 -207V-676Q1720.0 -712 1709.5 -727.0Q1699.0 -742 1680.0 -748L1634.0 -752Q1614.0 -761 1602.5 -774.0Q1591.0 -787 1591.0 -808Q1591.0 -831 1605.5 -847.5Q1620.0 -864 1652.0 -875L1823.0 -937Q1859.0 -951 1886.0 -959.0Q1913.0 -967 1938.0 -967Q1968.0 -967 1985.5 -947.5Q2003.0 -928 2003.0 -897V-219Q2003.0 -179 2013.5 -161.5Q2024.0 -144 2043.0 -135L2071.0 -125Q2093.0 -114 2104.5 -99.0Q2116.0 -84 2116.0 -61Q2116.0 -33 2098.0 -16.5Q2080.0 0 2046.0 0H1867.0Q1808.0 0 1770.0 -36.5Q1732.0 -73 1732.0 -136ZM1088.0 -274V-676Q1088.0 -712 1077.0 -727.0Q1066.0 -742 1047.0 -748L1001.0 -752Q982.0 -761 970.0 -774.0Q958.0 -787 958.0 -808Q958.0 -831 973.0 -847.5Q988.0 -864 1019.0 -875L1190.0 -937Q1227.0 -951 1253.5 -959.0Q1280.0 -967 1306.0 -967Q1336.0 -967 1353.0 -947.5Q1370.0 -928 1370.0 -897V-344Q1370.0 -260 1408.5 -216.5Q1447.0 -173 1512.0 -173Q1556.0 -173 1604.5 -194.5Q1653.0 -216 1707.0 -264L1749.0 -303L1808.0 -236L1756.0 -188Q1638.0 -76 1544.0 -25.0Q1450.0 26 1367.0 26Q1244.0 26 1166.0 -57.0Q1088.0 -140 1088.0 -274Z"/>
+        <path d="M2599.0 -897V-219Q2599.0 -175 2608.5 -156.5Q2618.0 -138 2638.0 -129L2668.0 -118Q2706.0 -98 2706.0 -61Q2706.0 0 2642.0 0H2273.0Q2240.0 0 2221.5 -16.0Q2203.0 -32 2203.0 -61Q2203.0 -84 2214.5 -99.0Q2226.0 -114 2248.0 -125L2277.0 -135Q2296.0 -144 2306.5 -161.5Q2317.0 -179 2317.0 -219V-676Q2317.0 -712 2306.0 -727.0Q2295.0 -742 2276.0 -748L2230.0 -752Q2211.0 -761 2199.0 -774.0Q2187.0 -787 2187.0 -808Q2187.0 -831 2202.0 -847.5Q2217.0 -864 2248.0 -875L2419.0 -937Q2456.0 -951 2482.5 -959.0Q2509.0 -967 2535.0 -967Q2565.0 -967 2582.0 -947.5Q2599.0 -928 2599.0 -897ZM2565.0 -643 2506.0 -710 2557.0 -758Q2678.0 -872 2775.5 -922.0Q2873.0 -972 2959.0 -972Q3087.0 -972 3168.0 -889.5Q3249.0 -807 3249.0 -672V-219Q3249.0 -179 3259.5 -161.0Q3270.0 -143 3289.0 -135L3317.0 -125Q3339.0 -113 3351.0 -98.5Q3363.0 -84 3363.0 -61Q3363.0 -32 3344.5 -16.0Q3326.0 0 3293.0 0H2923.0Q2859.0 0 2859.0 -61Q2859.0 -98 2897.0 -118L2928.0 -129Q2948.0 -138 2957.5 -156.5Q2967.0 -175 2967.0 -219V-602Q2967.0 -685 2925.5 -729.0Q2884.0 -773 2814.0 -773Q2768.0 -773 2715.5 -751.5Q2663.0 -730 2607.0 -680Z"/>
+        <path d="M3779.0 -528Q3779.0 -674 3820.5 -773.0Q3862.0 -872 3932.0 -922.0Q4002.0 -972 4087.0 -972Q4178.0 -972 4231.0 -915.5Q4284.0 -859 4284.0 -756Q4284.0 -666 4247.5 -623.0Q4211.0 -580 4150.0 -580Q4089.0 -580 4057.0 -610.0Q4025.0 -640 4025.0 -692V-728Q4025.0 -760 4009.0 -774.0Q3993.0 -788 3967.0 -788Q3930.0 -788 3897.5 -760.5Q3865.0 -733 3844.0 -677.5Q3823.0 -622 3823.0 -540ZM3808.0 -890 3823.0 -675V-219Q3823.0 -181 3837.0 -160.0Q3851.0 -139 3880.0 -135L3958.0 -125Q3988.0 -121 4001.5 -104.0Q4015.0 -87 4015.0 -61Q4015.0 -32 3997.0 -16.0Q3979.0 0 3945.0 0H3503.0Q3470.0 0 3451.5 -16.0Q3433.0 -32 3433.0 -61Q3433.0 -84 3444.5 -98.5Q3456.0 -113 3478.0 -125L3507.0 -135Q3526.0 -143 3536.5 -161.0Q3547.0 -179 3547.0 -219V-676Q3547.0 -712 3536.0 -727.0Q3525.0 -742 3506.0 -748L3460.0 -752Q3441.0 -760 3429.0 -773.5Q3417.0 -787 3417.0 -808Q3417.0 -831 3432.0 -847.5Q3447.0 -864 3478.0 -875L3649.0 -937Q3682.0 -949 3706.5 -958.0Q3731.0 -967 3748.0 -967Q3773.0 -967 3788.5 -949.5Q3804.0 -932 3808.0 -890Z"/>
+        <path d="M4854.0 -972Q5010.0 -972 5127.0 -908.0Q5244.0 -844 5309.5 -731.5Q5375.0 -619 5375.0 -471Q5375.0 -329 5308.0 -217.0Q5241.0 -105 5121.0 -40.0Q5001.0 25 4844.0 25Q4688.0 25 4571.0 -38.5Q4454.0 -102 4388.5 -216.0Q4323.0 -330 4323.0 -480Q4323.0 -619 4390.0 -730.0Q4457.0 -841 4576.5 -906.5Q4696.0 -972 4854.0 -972ZM4933.0 -129Q4995.0 -142 5033.5 -194.0Q5072.0 -246 5083.0 -329.0Q5094.0 -412 5070.0 -517Q5045.0 -628 4999.0 -700.5Q4953.0 -773 4894.0 -803.5Q4835.0 -834 4771.0 -820Q4709.0 -807 4669.0 -756.5Q4629.0 -706 4617.5 -623.5Q4606.0 -541 4630.0 -432Q4655.0 -320 4701.5 -248.0Q4748.0 -176 4808.0 -146.0Q4868.0 -116 4933.0 -129Z"/>
+        <path d="M5991.0 -972Q6147.0 -972 6264.0 -908.0Q6381.0 -844 6446.5 -731.5Q6512.0 -619 6512.0 -471Q6512.0 -329 6445.0 -217.0Q6378.0 -105 6258.0 -40.0Q6138.0 25 5981.0 25Q5825.0 25 5708.0 -38.5Q5591.0 -102 5525.5 -216.0Q5460.0 -330 5460.0 -480Q5460.0 -619 5527.0 -730.0Q5594.0 -841 5713.5 -906.5Q5833.0 -972 5991.0 -972ZM6070.0 -129Q6132.0 -142 6170.5 -194.0Q6209.0 -246 6220.0 -329.0Q6231.0 -412 6207.0 -517Q6182.0 -628 6136.0 -700.5Q6090.0 -773 6031.0 -803.5Q5972.0 -834 5908.0 -820Q5846.0 -807 5806.0 -756.5Q5766.0 -706 5754.5 -623.5Q5743.0 -541 5767.0 -432Q5792.0 -320 5838.5 -248.0Q5885.0 -176 5945.0 -146.0Q6005.0 -116 6070.0 -129Z"/>
+        <path d="M6997.0 -897V-219Q6997.0 -175 7006.5 -156.5Q7016.0 -138 7036.0 -129L7065.0 -118Q7103.0 -98 7103.0 -61Q7103.0 0 7039.0 0H6673.0Q6640.0 0 6621.5 -16.0Q6603.0 -32 6603.0 -61Q6603.0 -84 6614.5 -99.0Q6626.0 -114 6648.0 -125L6677.0 -135Q6696.0 -144 6706.5 -161.5Q6717.0 -179 6717.0 -219V-676Q6717.0 -712 6706.0 -727.0Q6695.0 -742 6676.0 -748L6630.0 -752Q6611.0 -761 6599.0 -774.0Q6587.0 -787 6587.0 -808Q6587.0 -831 6602.0 -847.5Q6617.0 -864 6648.0 -875L6817.0 -937Q6854.0 -951 6880.5 -959.0Q6907.0 -967 6933.0 -967Q6963.0 -967 6980.0 -947.5Q6997.0 -928 6997.0 -897ZM6969.0 -643 6909.0 -710 6961.0 -758Q7081.0 -872 7177.0 -922.0Q7273.0 -972 7356.0 -972Q7482.0 -972 7561.5 -889.5Q7641.0 -807 7641.0 -672V-219Q7641.0 -175 7650.5 -156.5Q7660.0 -138 7679.0 -129L7709.0 -118Q7747.0 -98 7747.0 -61Q7747.0 0 7683.0 0H7317.0Q7253.0 0 7253.0 -61Q7253.0 -98 7291.0 -118L7322.0 -129Q7342.0 -138 7351.5 -156.5Q7361.0 -175 7361.0 -219V-602Q7361.0 -686 7320.5 -729.5Q7280.0 -773 7213.0 -773Q7168.0 -773 7117.0 -751.5Q7066.0 -730 7011.0 -680ZM7619.0 -646 7559.0 -714 7601.0 -754Q7720.0 -870 7816.0 -921.0Q7912.0 -972 7996.0 -972Q8122.0 -972 8201.0 -889.5Q8280.0 -807 8280.0 -672V-219Q8280.0 -179 8291.0 -161.5Q8302.0 -144 8320.0 -135L8349.0 -125Q8370.0 -113 8382.0 -98.5Q8394.0 -84 8394.0 -61Q8394.0 -32 8375.5 -16.0Q8357.0 0 8324.0 0H7957.0Q7893.0 0 7893.0 -61Q7893.0 -98 7931.0 -118L7961.0 -129Q7981.0 -138 7990.5 -156.5Q8000.0 -175 8000.0 -219V-602Q8000.0 -686 7960.0 -729.5Q7920.0 -773 7852.0 -773Q7807.0 -773 7756.0 -750.0Q7705.0 -727 7650.0 -675Z"/>
+      </g>
+    </svg>
+  </div>
+
+  <div class="nav" id="nav">
+    <a data-view="library"><svg class="ico" viewBox="0 0 24 24"><use href="#i-library"/></svg>Library<span class="ct zero" id="ct-docs">0</span></a>
+    <a data-view="read"><svg class="ico" viewBox="0 0 24 24"><use href="#i-read"/></svg>Read</a>
+    <a data-view="make"><svg class="ico" viewBox="0 0 24 24"><use href="#i-make"/></svg>Make</a>
+    <a data-view="ask"><svg class="ico" viewBox="0 0 24 24"><use href="#i-ask"/></svg>Ask</a>
+    <a data-view="practice"><svg class="ico" viewBox="0 0 24 24"><use href="#i-practice"/></svg>Practice<span class="ct zero" id="ct-due">0</span></a>
+    <a data-view="checks"><svg class="ico" viewBox="0 0 24 24"><use href="#i-checks"/></svg>Checks<span class="ct zero" id="ct-prob">0</span></a>
+  </div>
+
+  <div class="railsec">
+    <span class="eyebrow">Collections</span>
+  </div>
+  <div class="colls" id="colls"></div>
+
+  <div class="railfoot">
+    <button class="btn sun sm" id="add-open" style="width:100%;justify-content:center">
+      <svg viewBox="0 0 24 24"><use href="#i-plus"/></svg>Add a source
+    </button>
+    <button class="account" id="account" hidden>
+      <span class="who" id="account-email">…</span>
+      <span class="meter" id="account-meter" hidden><i></i></span>
+      <span class="small muted" id="account-usage"></span>
+    </button>
+  </div>
+</nav>
+
+<!-- ── main ──────────────────────────────────────────────────── -->
+<div id="main">
+  <header class="topbar">
+    <button class="iconbtn menubtn" id="menu" aria-label="Show the menu"
+            aria-expanded="false" aria-controls="rail">
+      <svg viewBox="0 0 24 24"><use href="#i-menu"/></svg></button>
+    <h1 id="title">Library</h1>
+    <span class="sub" id="subtitle"></span>
+    <div class="sp"></div>
+    <div class="search">
+      <svg viewBox="0 0 24 24"><use href="#i-search"/></svg>
+      <input id="search" placeholder="Search everything…" aria-label="Search the library">
+    </div>
+    <div id="topactions" class="chips"></div>
+  </header>
+
+  <div class="scroll" id="scroll">
+    <div id="view"></div>
+  </div>
+
+  <div class="composer" id="composer" style="display:none">
+    <div class="inner">
+      <input id="ask-input" placeholder="Ask anything about this source…"
+             aria-label="Ask a question">
+      <button class="btn sun" id="ask-send">Ask</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── attribution ───────────────────────────────────────────── -->
+<aside id="aside">
+  <div class="head">
+    <span class="eyebrow">Where this came from</span>
+  </div>
+  <div class="body" id="aside-body"></div>
+</aside>
+
+<div id="railscrim" aria-hidden="true"></div>
+
+<!-- ── work in progress ──────────────────────────────────────── -->
+<div id="tray" aria-live="polite"></div>
+
+<!-- ── sign in ───────────────────────────────────────────────── -->
+<div id="gate" hidden>
+  <div class="gate-card">
+    <div class="gate-brand">
+      <svg viewBox="0 0 32 32" aria-hidden="true" class="gate-mark">
+        <defs><clipPath id="gm"><rect width="32" height="32" rx="7.4"/></clipPath></defs>
+        <rect width="32" height="32" rx="7.4" fill="#1B211E"/>
+        <g clip-path="url(#gm)"><circle cx="16" cy="30" r="12.5" fill="#E0A32B"/></g>
+      </svg>
+      <b>sunroom</b>
+    </div>
+    <h1>Understand anything, in the form that suits you.</h1>
+    <p class="gate-lede">Add a lecture, a PDF, an article. Sunroom reads it once
+      and gives it back as a brief, a podcast, a practice set, or a tutor to
+      ask — with every line traceable to the passage it came from.</p>
+    <form id="gate-form" novalidate>
+      <label for="gate-email">Email</label>
+      <input id="gate-email" type="email" inputmode="email" autocomplete="email"
+             placeholder="you@university.edu" required>
+      <button class="btn sun" id="gate-go" type="submit">Email me a link</button>
+    </form>
+    <p class="small muted" id="gate-msg" role="status"></p>
+    <p class="small muted gate-foot">No password. We send a link that signs you
+      in on this device.</p>
+  </div>
+</div>
+
+<!-- ── settings ──────────────────────────────────────────────── -->
+<div class="sheet" id="settings">
+  <div class="panel">
+    <h2 style="margin-bottom:.35rem">Your account</h2>
+    <p class="small muted" id="set-email" style="margin-bottom:1.2rem"></p>
+
+    <div class="usage-block" id="set-usage"></div>
+
+    <div class="field" style="margin-top:1.3rem">
+      <label for="set-key">Your own Anthropic key <span class="muted">(optional)</span></label>
+      <input id="set-key" type="password" autocomplete="off" spellcheck="false"
+             placeholder="sk-ant-…">
+      <p class="small muted" style="margin-top:.4rem">With your own key there is
+        no monthly limit — the usage goes to your Anthropic account instead of
+        ours. It is encrypted before it is stored and never sent back to this
+        page.</p>
+    </div>
+    <div class="chips" style="margin-top:1rem;justify-content:flex-end">
+      <button class="btn quiet sm" id="set-clear" hidden>Remove key</button>
+      <button class="btn quiet sm" id="set-close">Close</button>
+      <button class="btn sun" id="set-save">Save key</button>
+    </div>
+    <div class="small muted" id="set-msg" style="margin-top:.7rem"></div>
+
+    <div class="signout-row">
+      <button class="linkish" id="set-signout">Sign out</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── add sheet ─────────────────────────────────────────────── -->
+<div class="sheet" id="sheet">
+  <div class="panel">
+    <h2 style="margin-bottom:.35rem">Add a source</h2>
+    <p class="small muted" style="margin-bottom:1.1rem">
+      A PDF, a lecture recording, an article, or text you paste in. Sunroom reads
+      it once and remembers where everything came from.
+    </p>
+    <div class="drop" id="drop">
+      <svg viewBox="0 0 24 24" class="dropico"><use href="#i-upload"/></svg>
+      <p><button type="button" class="linkish" id="pick">Choose a file</button>
+         or drop one here</p>
+      <span class="small muted">PDF, audio, video, a web page you saved, plain text</span>
+      <input type="file" id="file" hidden
+             accept=".pdf,.txt,.md,.markdown,.html,.htm,.mp3,.m4a,.wav,.mp4,.mov,.vtt,.srt">
+    </div>
+    <div class="or"><span>or</span></div>
+    <div class="field">
+      <label for="src">Paste text, or a link</label>
+      <textarea id="src" placeholder="https://… or paste the text itself"></textarea>
+    </div>
+    <div class="field">
+      <label for="ttl">Title <span class="muted">(optional)</span></label>
+      <input id="ttl" placeholder="Sunroom will use the document's own title">
+    </div>
+    <div class="field">
+      <label for="coll">Collection</label>
+      <input id="coll" placeholder="e.g. ANTH266" list="colls-list">
+      <datalist id="colls-list"></datalist>
+    </div>
+    <div class="chips" style="margin-top:1.1rem;justify-content:flex-end">
+      <button class="btn quiet sm" id="add-cancel">Cancel</button>
+      <button class="btn sun" id="add-go">Add to library</button>
+    </div>
+    <div class="small muted" id="addmsg" style="margin-top:.7rem"></div>
+  </div>
+</div>
+
+<div id="toast" role="status" aria-live="polite"></div>
+<script src="/static/auth.js"></script>
+<script src="/static/app.js"></script>
+</body>
+</html>
