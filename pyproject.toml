@@ -4,33 +4,40 @@ version = "1.0.0"
 description = "Understand anything, in the form that suits you."
 readme = "README.md"
 requires-python = ">=3.10"
+# What the application needs to import and serve. These were optional extras
+# until a Vercel deploy died on `ModuleNotFoundError: No module named
+# 'fastapi'` -- installers read pyproject.toml in preference to
+# requirements.txt, saw one dependency, and installed one dependency. Extras
+# are for things a caller might not want; nothing here is optional to a running
+# Sunroom, so nothing here is an extra.
+#
+# Kept in step with requirements.txt by tests/test_deploy_config.py, because
+# two lists of the same thing drift, and this one drifts into a 500.
 dependencies = [
     "pydantic>=2.7",
+    "fastapi>=0.115",
+    "python-multipart>=0.0.9",
+    "httpx>=0.27",
+    "psycopg[binary,pool]>=3.2",
+    "PyJWT[crypto]>=2.9",
+    "cryptography>=42",
+    "anthropic>=0.40",
+    "pypdf>=4.2",
+    "beautifulsoup4>=4.12",
 ]
 
 [project.optional-dependencies]
-# The engine alone, for a script or a notebook.
+# Retained so `pip install sunroom[server]` and the like keep working; they now
+# resolve to nothing that is not already installed. uvicorn is the exception --
+# a real ASGI server is genuinely optional, since Vercel brings its own and the
+# container installs it explicitly.
 anthropic = ["anthropic>=0.40"]
-pdf = ["pypdf>=4.0"]
+pdf = ["pypdf>=4.2"]
 web = ["beautifulsoup4>=4.12", "httpx>=0.27"]
-
-# The web application on SQLite -- everything a laptop needs.
-server = [
-    "fastapi>=0.115",
-    "uvicorn[standard]>=0.30",
-    "python-multipart>=0.0.9",
-    "httpx>=0.27",
-    "PyJWT[crypto]>=2.9",
-    "cryptography>=42",
-]
-# What the deployed thing needs on top of that.
+server = ["uvicorn[standard]>=0.30"]
 postgres = ["psycopg[binary,pool]>=3.2"]
 
-all = [
-    "anthropic>=0.40", "pypdf>=4.0", "beautifulsoup4>=4.12", "httpx>=0.27",
-    "fastapi>=0.115", "uvicorn[standard]>=0.30", "python-multipart>=0.0.9",
-    "PyJWT[crypto]>=2.9", "cryptography>=42", "psycopg[binary,pool]>=3.2",
-]
+all = ["uvicorn[standard]>=0.30"]
 dev = [
     "pytest>=8.0",
     "playwright>=1.44",

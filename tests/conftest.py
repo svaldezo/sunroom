@@ -27,6 +27,19 @@ os.environ.update(
     # test can be read by another in the same run.
     SUNROOM_SECRET_KEY="test-secret-key-that-is-long-enough-for-hkdf-0123456789",
     SUNROOM_WORKER_SECRET="test-worker-secret",
+    # No background worker during tests.
+    #
+    # The app starts one whenever the process is long-lived, which includes
+    # every TestClient -- so a thread was draining the shared queue behind the
+    # whole suite. Tests that expect to drive a job would sometimes find it
+    # already claimed: /api/worker/run answered "ran: 0", the loop exited, and
+    # the job was still mid-slice in another thread. That is a test failing at
+    # random, in a different place each run, for a reason nothing in the test
+    # points at.
+    #
+    # Tests call drain() when they want work done, which is also the only way
+    # a test can honestly claim the thing it drove is the thing that ran.
+    SUNROOM_INLINE_WORKER="0",
 )
 os.environ.pop("ANTHROPIC_API_KEY", None)
 os.environ.pop("DATABASE_URL", None)

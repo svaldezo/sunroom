@@ -95,3 +95,48 @@ def test_the_python_version_is_pinned_and_supported(cfg):
     # default is today", which is a silent upgrade waiting to happen.
     pin = (ROOT / ".python-version").read_text().strip()
     assert pin in {"3.12", "3.13", "3.14"}, f"unsupported on Vercel: {pin}"
+
+
+# --------------------------------------------------------- dependencies ----
+
+def _reqs() -> set[str]:
+    return {ln.split("#")[0].strip().lower()
+            for ln in (ROOT / "requirements.txt").read_text().splitlines()
+            if ln.strip() and not ln.strip().startswith("#")}
+
+
+def _base_deps() -> set[str]:
+    import tomllib
+    d = tomllib.load(open(ROOT / "pyproject.toml", "rb"))["project"]
+    return {x.lower() for x in d["dependencies"]}
+
+
+def test_the_app_can_be_imported_from_base_dependencies_alone():
+    """A Vercel deploy answered 500 with `No module named 'fastapi'`.
+
+    Installers read pyproject.toml in preference to requirements.txt. fastapi
+    was an optional extra, so `pip install .` produced a package that imports
+    pydantic and nothing else -- which looks fine until the first request.
+    Anything imported at module scope has to be a base dependency.
+    """
+    base = " ".join(_base_deps())
+    for pkg in ("fastapi", "pydantic", "httpx", "psycopg", "pyjwt", "cryptography"):
+        assert pkg in base, f"{pkg} must be a base dependency, not an extra"
+
+
+def test_requirements_and_pyproject_agree():
+    """Two lists of the same thing drift; this one drifts into a 500."""
+    reqs, base = _reqs(), _base_deps()
+    assert reqs == base, (
+        f"only in requirements.txt: {sorted(reqs - base)}\n"
+        f"only in pyproject:       {sorted(base - reqs)}")
+
+
+def test_no_extra_is_needed_to_serve_a_request():
+    # Extras may add capability; none may be load-bearing for a plain boot.
+    import tomllib
+    opt = tomllib.load(open(ROOT / "pyproject.toml", "rb"))["project"]["optional-dependencies"]
+    # uvicorn is genuinely optional: Vercel brings its own server.
+    assert all("uvicorn" in x or any(x.lower() in b for b in _base_deps())
+               for names in opt.values() for x in names
+               if not names == opt.get("dev"))

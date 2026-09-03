@@ -551,6 +551,13 @@ def test_polling_does_no_work_when_the_nudge_is_off(client, monkeypatch):
                     json={"source": "# T\n\nSomething to read. " * 8,
                           "kind": "text", "title": "Idle"}, headers=auth())
     job_id = r.json()["job"]["id"]
-    for _ in range(5):
-        body = client.get(f"/api/jobs/{job_id}", headers=auth()).json()
-    assert body["status"] == "queued", "the nudge ran while disabled"
+    try:
+        for _ in range(5):
+            body = client.get(f"/api/jobs/{job_id}", headers=auth()).json()
+        assert body["status"] == "queued", "the nudge ran while disabled"
+    finally:
+        # The queue is shared, and on Postgres it outlives the test. A job
+        # deliberately left queued is a job some later test's drain() will
+        # spend its budget on instead of its own -- which surfaces as that
+        # test failing, somewhere else, intermittently.
+        client.delete(f"/api/jobs/{job_id}", headers=auth())
