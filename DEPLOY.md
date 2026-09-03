@@ -152,7 +152,22 @@ during your first busy hour, which is the worst possible time to find out.
 
 ## 2. Vercel
 
-Import the repository. Framework preset: **Other**. No build command.
+Import the repository. Framework preset: **Other**. No build command, no
+output directory, root directory blank.
+
+`vercel.json` deliberately does *not* set two things, and both are traps:
+
+- **`runtime`.** That key names a versioned community runtime
+  (`@vercel/python@4.3.0`). Naming a built-in one — `"python3.12"` — fails the
+  build with `Function Runtimes must have a valid version, for example
+  now-php@1.0.0`, which does not mention Python or your file. Built-in runtimes
+  are inferred from the extension; the version comes from `.python-version`.
+- **`memory`.** It cannot be set from `vercel.json` on any plan. Hobby is fixed
+  at 2 GB / 1 vCPU; Pro sets it in the dashboard. A number here is ignored with
+  a build-time warning.
+
+`tests/test_deploy_config.py` asserts both, plus the Hobby cron and duration
+ceilings, so these are caught by `pytest` rather than by a failed deploy.
 
 Add these environment variables (Settings → Environment Variables), all
 environments:
