@@ -515,3 +515,42 @@ def test_one_account_cannot_spend_anothers_allowance(client, monkeypatch):
         client.get("/api/documents", headers=auth(ALICE, "alice@test"))
     assert client.get("/api/documents",
                       headers=auth(BOB, "bob@test")).status_code == 200
+
+
+# ------------------------------------------- the queue, driven by polling ---
+
+def test_polling_a_job_advances_it_when_nothing_else_can(client, monkeypatch):
+    """Vercel Hobby allows one cron a day, and refuses the deploy if you ask
+    for more. Without this, every job on that plan sits at "Queued" forever
+    with nothing on screen to explain it."""
+    from prism.config import SETTINGS
+
+    monkeypatch.setattr(SETTINGS, "poll_nudge_seconds", 5.0)
+    r = client.post("/api/documents",
+                    json={"source": "# Title\n\nReciprocity is mutual exchange "
+                                    "between parties of equal standing. " * 8,
+                          "kind": "text", "title": "Nudge"}, headers=auth())
+    assert r.status_code == 202
+    job_id = r.json()["job"]["id"]
+
+    # No worker thread, no cron, no /api/worker call -- only the poll the
+    # browser makes anyway.
+    status = ""
+    for _ in range(40):
+        status = client.get(f"/api/jobs/{job_id}", headers=auth()).json()["status"]
+        if status in ("done", "failed"):
+            break
+    assert status == "done", f"polling did not finish the job (last: {status})"
+
+
+def test_polling_does_no_work_when_the_nudge_is_off(client, monkeypatch):
+    from prism.config import SETTINGS
+
+    monkeypatch.setattr(SETTINGS, "poll_nudge_seconds", 0.0)
+    r = client.post("/api/documents",
+                    json={"source": "# T\n\nSomething to read. " * 8,
+                          "kind": "text", "title": "Idle"}, headers=auth())
+    job_id = r.json()["job"]["id"]
+    for _ in range(5):
+        body = client.get(f"/api/jobs/{job_id}", headers=auth()).json()
+    assert body["status"] == "queued", "the nudge ran while disabled"

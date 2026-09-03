@@ -103,6 +103,13 @@ class Settings:
     # so a job survives any function timeout.
     slice_seconds: float = _float("SUNROOM_SLICE_SECONDS", 35.0)
     max_job_attempts: int = _int("SUNROOM_MAX_JOB_ATTEMPTS", 5)
+    # Advance the queue from inside a job-status poll, for deployments with no
+    # way to run a worker on a schedule -- Vercel's Hobby plan caps crons at one
+    # a day, and refuses the whole deployment if the file asks for more. The
+    # browser polls while a job runs, so the work rides along on traffic that is
+    # already happening. 0 disables it; keep it well under the function's
+    # maxDuration, since it is spent inside a request.
+    poll_nudge_seconds: float = _float("SUNROOM_POLL_NUDGE", 0.0)
     rate_limit_per_min: int = _int("SUNROOM_RATE_LIMIT", 120)
 
     # -- secrets ----------------------------------------------------------

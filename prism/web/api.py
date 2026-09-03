@@ -509,6 +509,30 @@ def get_job(job_id: str, principal: Principal = Depends(current_principal)
     job = jobs().get(principal.user_id, job_id)
     if not job:
         raise HTTPException(404, "No such job.")
+
+    # Where nothing can run a worker on a schedule, the poll drives the queue.
+    #
+    # Vercel's Hobby plan allows one cron a day and rejects the deployment
+    # outright if vercel.json asks for more, so an app relying on a per-minute
+    # cron does not merely run slowly there -- it does not deploy, and if the
+    # schedule is quietly relaxed to daily instead, every job sits at "Queued"
+    # with nothing to explain why. The browser is already polling this endpoint
+    # while a job runs, so the work rides along on traffic that exists anyway.
+    #
+    # This claims from the shared queue rather than this job specifically:
+    # whatever is next is what needs doing, and the queue's leases already make
+    # concurrent claims safe. Usage is billed to the job's own account, so
+    # nobody pays for a slice their poll happened to drive.
+    if SETTINGS.poll_nudge_seconds > 0 and job.status in ("queued", "running"):
+        try:
+            from ..jobs.runner import run_slice
+            run_slice(budget_seconds=SETTINGS.poll_nudge_seconds)
+        except Exception as exc:                      # noqa: BLE001
+            # A poll that reports status must keep reporting status; the job
+            # already survives a failed slice by expiring its lease.
+            log.warning("poll nudge: %s", exc)
+        job = jobs().get(principal.user_id, job_id) or job
+
     return job.to_dict()
 
 

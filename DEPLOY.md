@@ -178,9 +178,27 @@ Optional but worth setting on day one:
 | `SUNROOM_ALLOWED_EMAIL_DOMAINS` | `umd.edu` — limits who can sign up at all |
 | `SUNROOM_SLICE_SECONDS` | keep below the function's `maxDuration` |
 
-Deploy. The cron in `vercel.json` runs the worker every minute; on the Hobby
-plan crons fire once a day, so **the worker needs the Pro plan or an external
-pinger** — see "If jobs sit queued" below.
+### The worker, and the Hobby plan
+
+Something has to drain the job queue. Vercel's Hobby plan allows **one cron a
+day** — and it does not merely run your per-minute schedule slowly, it **refuses
+the deployment** with "Upgrade to the Pro plan to unlock all Cron Jobs
+features". So `vercel.json` ships a daily schedule, which deploys on either
+plan. Daily is a backstop for stranded jobs, not what makes ingestion feel live.
+
+Pick one to actually drive it:
+
+- **Hobby, nothing else to run:** set `SUNROOM_POLL_NUDGE=8`. The browser polls
+  job status while a job runs, and each poll advances the queue by up to 8
+  seconds inside that request. No cron, no external service. Keep it well under
+  the function's `maxDuration` (60s), since it is spent inside a request.
+- **An uptime pinger** (any plan): `POST https://your-app.vercel.app/api/worker`
+  with header `X-Worker-Secret: <SUNROOM_WORKER_SECRET>`, every minute. One
+  cheap request, and the most predictable of the three.
+- **Pro:** change the schedule in `vercel.json` back to `* * * * *`.
+
+The container path needs none of this — the process outlives the request, so
+the worker runs in a background thread.
 
 ### Check it came up
 
